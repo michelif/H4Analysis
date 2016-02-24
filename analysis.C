@@ -12,7 +12,7 @@ void analysis() {
 	canvas->Divide(2,2);
 	TTree* h4 = (TTree*) f.Get("h4");
 	TH2F* WavePulse = new TH2F ("WavePulse", "Wave Pulse", 1000, -0.1, 199.9, 850, -50, 800);
-	TH1F* PulseTime = new TH1F ("PulseTime", "1D Histo", 1000, -0.1, 199.9);
+	TH1F* PulseTime = new TH1F ("PulseTime", "1D Histo", 1000, -0.1, 199.9); //nanoseconds
 	h4->Draw("WF_val:WF_time>>WavePulse", "WF_ch==2 && event==1 && spill==1");
 	myfile.open ("storage.txt");
 	myfile << "x" << "\t \t" << "y" << endl;
@@ -30,24 +30,32 @@ void analysis() {
     //MyGraph->Draw();
     //PulseTime->DrawClone();
     canvas->cd(1);
+    WavePulse->GetXaxis()->SetTitle("Time (ns)");
+    WavePulse->GetYaxis()->SetTitle("Energy (GeV)");
     WavePulse->DrawClone();
     //h4->Draw("WF_val:WF_time", "WF_ch==2 && event==1 && spill==1");
     canvas->cd(2);
-    TH1F* PulseFreq = new TH1F ("PulseFreq", "Pulse FFT", 1000, -0.1, 199.9);
+    TH1F* PulseFreq = new TH1F ("PulseFreq", "Pulse FFT", 1000, -0.1, 999.9);
     PulseTime->FFT(PulseFreq, "MAG");
     PulseFreq->SetLineColor(kRed);
+    PulseFreq->GetXaxis()->SetTitle("Frequency ns^-1");
+    PulseFreq->GetYaxis()->SetTitle("Amplitude");
     PulseFreq->DrawClone();
     gPad->SetLogy();
     canvas->cd(3);
-    TH1F *NoiseTime = new TH1F ("NoiseTime", "Wave Pulse Noise", 200, -0.1, 200*0.2-0.1);
-    for (Int_t l=0; l<PulseTime->GetNbinsX()/5; l++) {
-    	NoiseTime->SetBinContent(l, PulseTime->GetBinContent(l));
+    TH1F *NoiseTime = new TH1F ("NoiseTime", "Wave Pulse Noise", 1000, -0.1, 200*0.2-0.1);
+    for (Int_t l=0; l<PulseTime->GetNbinsX(); l++) {
+    	NoiseTime->SetBinContent(l, PulseTime->GetBinContent(l%200));
     }
-    //NoiseTime->GetXaxis()->SetRangeUser(10,990);
+    //NoiseTime->GetXaxis()()->SetRangeUser(10,990);
+    NoiseTime->GetXaxis()->SetTitle("Time (ns)");
+    NoiseTime->GetYaxis()->SetTitle("Energy (GeV)");
     NoiseTime->Draw();
     canvas->cd(4);
     TH1F* NoiseFreq = new TH1F ("NoiseFreq", "Noise FFT", 200, -0.1, 199.9);
     NoiseTime->FFT(NoiseFreq, "MAG");
+    NoiseFreq->GetXaxis()->SetTitle("Frequency ns^-1");
+    NoiseFreq->GetYaxis()->SetTitle("Amplitude");
     NoiseFreq->Draw();
     gPad->SetLogy();
     canvas2->Divide(1,3);
@@ -66,8 +74,6 @@ void analysis() {
     PulseFreq->Draw();
     NoiseFreq->Draw("same");
     gPad->SetLogy();
-
-    //NoiseTime->SetTitle("FFT");
 }
 
 
@@ -83,4 +89,4 @@ void analysis() {
 // MyTree->Draw("y:x","");
 // canvas->cd(1);
 // WavePulse->DrawClone("colz");
-// gPad->SetLogz();
+//NoiseTime->SetTitle("FFT");
