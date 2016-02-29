@@ -10,7 +10,8 @@ void testanalysis() {
     TCanvas* canvas3 = new TCanvas("canvas3","Frequency2", 800, 1200);
 	canvas->Divide(2,3);
     Int_t nbins = 100;
-    TF1 *func = new TF1("func", "1*TMath::Exp(-((x-TMath::Pi())^2)/(2*0.65^2))", 0, 2*TMath::Pi());
+    //TF1 *func = new TF1("func", "800*TMath::Exp(-((x-TMath::Pi())^2)/(2*0.65^2))", 0, 2*TMath::Pi());
+    TF1 *func = new TF1("func", "800*(-exp(-3*x) + exp(-1.5*x))", 0, 4);
     canvas->cd(1);
     func->SetTitle("Signal");
     func->DrawClone();
@@ -24,7 +25,8 @@ void testanalysis() {
     funchisto->FFT(funcFFT, "MAG");
     funcFFT->DrawClone();
     gPad->SetLogy();
-    TF1* noisy = new TF1("noisy", "1*TMath::Exp(-((x-TMath::Pi())^2)/(2*0.65^2)) + sin(6*x)/10", 0, 2*TMath::Pi());
+    //TF1* noisy = new TF1("noisy", "800*TMath::Exp(-((x-TMath::Pi())^2)/(2*0.65^2)) + sin(6*x)/10", 0, 2*TMath::Pi());
+    TF1* noisy = new TF1("noisy", "800*(-exp(-3*x) + exp(-1.5*x)) + sin(0.01*x)/10 + x/10", 0, 2*TMath::Pi());
     canvas->cd(3);
     noisy->SetTitle("Signal & Noise");
     noisy->DrawClone();
@@ -40,7 +42,7 @@ void testanalysis() {
     canvas->cd(4);
     noisyFFT->DrawClone();
     gPad->SetLogy();
-    TF1 *noise = new TF1("noise", "sin(6*x)/10", 0, 2*TMath::Pi());
+    TF1 *noise = new TF1("noise", "sin(0.01*x)/10 + x/10", 0, 2*TMath::Pi());
     canvas->cd(5);
     noise->DrawClone();    
     TH1F* noisehisto = new TH1F("noisehisto", "Noise", nbins, 0, 2*TMath::Pi());
@@ -61,7 +63,7 @@ void testanalysis() {
     noiseFFT->DrawClone();
     gPad->SetLogy();
     noisyFFT->SetTitle("Normalized Noisy Signal & Noise FFT");
-    canvas2->cd(3);
+    canvas2->cd(3); 
     noisyFFT->Draw();
     noiseFFT->Draw("same");
     gPad->SetLogy();
@@ -97,6 +99,8 @@ void testanalysis() {
     }
     func->Draw();
     fancysignal->Draw("same");
+    funchisto->SetLineColor(kGreen);
+    funchisto->Draw("same");
     
 
 
