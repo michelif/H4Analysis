@@ -109,18 +109,18 @@ void analysis() {
     TH1 *Signal = 0;
     Signal = TH1::TransformHisto(invFFT,Signal,"Re");
     Signal->SetTitle("Recovered Signal 'S'");
-    TH1F* fancysignal = new TH1F ("fancysignal", "Recovered Signal", nbins, -0.1, 159.9);
+    TH1F* bettersignal = new TH1F ("bettersignal", "Recovered Signal", nbins, -0.1, 159.9);
     for (Int_t p=0; p<nbins; p++) {
-        fancysignal->SetBinContent(p+1, Signal->GetBinContent(p+1)/nbins);
+        bettersignal->SetBinContent(p+1, Signal->GetBinContent(p+1)/nbins);
     }
     canvas3->Divide(1,2);
     canvas3->cd(1);
     PulseTime->DrawClone();
     canvas3->cd(2);
-    fancysignal->GetXaxis()->SetTitle("Time (ns)");
-    fancysignal->GetYaxis()->SetTitle("Amplitude");
-    fancysignal->SetLineColor(kRed);
-    fancysignal->Draw();
+    bettersignal->GetXaxis()->SetTitle("Time (ns)");
+    bettersignal->GetYaxis()->SetTitle("Amplitude");
+    bettersignal->SetLineColor(kRed);
+    bettersignal->Draw();
     PulseTime->DrawClone("same");
     gPad->SetGrid();
     //Double_t N = nbins;

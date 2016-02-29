@@ -93,12 +93,12 @@ void testanalysis() {
     TH1 *Signal = 0;
     Signal = TH1::TransformHisto(invFFT,Signal,"Re");
     Signal->SetTitle("Recovered Signal 'S'");
-    TH1F* fancysignal = new TH1F ("fancysignal", "Recovered Signal", nbins, 0, 2*TMath::Pi());
+    TH1F* bettersignal = new TH1F ("bettersignal", "Recovered Signal", nbins, 0, 2*TMath::Pi());
     for (Int_t p=0; p<nbins; p++) {
-        fancysignal->SetBinContent(p+1, Signal->GetBinContent(p+1)/nbins);
+        bettersignal->SetBinContent(p+1, Signal->GetBinContent(p+1)/nbins);
     }
     func->Draw();
-    fancysignal->Draw("same");
+    bettersignal->Draw("same");
     funchisto->SetLineColor(kGreen);
     funchisto->Draw("same");
     
