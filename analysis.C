@@ -14,6 +14,44 @@ void analysis() {
 	TimeandFreq->Divide(2,2);
 	TTree* h4 = (TTree*) f.Get("h4");
     TTree* h4_2 = (TTree*) f1.Get("h4");
+    TTree* reco = (TTree*) f1.Get("reco");
+    TTree* wf = (TTree*) f1.Get("wf");
+    Int_t WF_ch[13312];
+    Int_t APD1;
+    Int_t APD2;
+    Int_t APD3;
+    Int_t APD4;
+    Int_t APD5;
+    Int_t APD6;
+    Int_t SiPM1;
+    Int_t SiPM2;
+    Float_t amp_max[13];
+    Float_t b_rms[13];
+    Float_t charge_tot[13];
+    TBranch *b_WF_ch;
+    TBranch *b_APD1;
+    TBranch *b_APD2;
+    TBranch *b_APD3;
+    TBranch *b_APD4;
+    TBranch *b_APD5;
+    TBranch *b_APD6;
+    TBranch *b_SiPM1;
+    TBranch *b_SiPM2;
+    TBranch *b_amp_max;
+    TBranch *b_charge_tot;
+    TBranch *b_b_rms;
+    wf->SetBranchAddress("WF_ch", &WF_ch, &b_WF_ch);
+    reco->SetBranchAddress("APD1", &APD1, &b_APD1);
+    reco->SetBranchAddress("APD2", &APD2, &b_APD2);
+    reco->SetBranchAddress("APD3", &APD3, &b_APD3);
+    reco->SetBranchAddress("APD4", &APD4, &b_APD4);
+    reco->SetBranchAddress("APD5", &APD5, &b_APD5);
+    reco->SetBranchAddress("APD6", &APD6, &b_APD6);
+    reco->SetBranchAddress("SiPM1", &SiPM1, &b_SiPM1);
+    reco->SetBranchAddress("SiPM2", &SiPM2, &b_SiPM2);
+    reco->SetBranchAddress("amp_max", &amp_max, &b_amp_max);
+    reco->SetBranchAddress("charge_tot", &charge_tot, &b_charge_tot);
+    reco->SetBranchAddress("b_rms", &b_rms, &b_b_rms);
 	TH2F* WavePulse = new TH2F ("WavePulse", "Wave Pulse", nbins, -0.1, 159.9, 850, -50, 800);
     TH2F* NoisePulse = new TH2F ("NoisePulse", "Noise", nbins, -0.1, 159.9, 100, -50, 50);
     TH1F* PulseTime = new TH1F ("PulseTime", "Original Wave Pulse", nbins, -0.1, 159.9); //nanoseconds
@@ -34,9 +72,12 @@ void analysis() {
             }
         }
     }
+    for (Int_t i=0;i<13312;i++) {
+        if (WF_ch[i]==APD1 && amp_max[APD3]<25 && b_rms[APD3]<5. && charge_tot[APD3]<20000 &&  amp_max[APD5]<25 && b_rms[APD5]<5. &&  amp_max[APD6]<25 && b_rms[APD6]<5. &&  amp_max[APD4]<25 && b_rms[APD4]<5. && amp_max[SiPM1]<20 && amp_max[SiPM2]<20 && amp_max[APD1]<40 && amp_max[APD2]<40 && b_rms[APD1]<5. && b_rms[APD2]<5.) {
+            
+        }
     //if (WF_ch==APD1 && amp_max[APD3]<25 && b_rms[APD3]<5. && charge_tot[APD3]<20000 &&  amp_max[APD5]<25 && b_rms[APD5]<5. &&  amp_max[APD6]<25 && b_rms[APD6]<5. &&  amp_max[APD4]<25 && b_rms[APD4]<5. && amp_max[SiPM1]<20 && amp_max[SiPM2]<20 && amp_max[APD1]<40 && amp_max[APD2]<40 && b_rms[APD1]<5. && b_rms[APD2]<5.) {
-
-    //}
+    }
     //for (Int_t i=0; i<10000; i++){
     //    for (Int_t j=0;j<10000; j++) {
     //        
