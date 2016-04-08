@@ -5,7 +5,7 @@
 using namespace std;
 
 void testanalysis() {
-	TCanvas* canvas = new TCanvas("canvas","Time & Frequency",1200,600);
+	TCanvas* canvas = new TCanvas("canvas","Time & Frequency",1800,1200);
     TCanvas* canvas2 = new TCanvas("canvas2","Frequency",800,1200);
     TCanvas* canvas3 = new TCanvas("canvas3","Frequency2", 800, 1200);
 	canvas->Divide(2,3);
@@ -26,7 +26,7 @@ void testanalysis() {
     funcFFT->DrawClone();
     gPad->SetLogy();
     //TF1* noisy = new TF1("noisy", "800*TMath::Exp(-((x-TMath::Pi())^2)/(2*0.65^2)) + sin(6*x)/10", 0, 2*TMath::Pi());
-    TF1* noisy = new TF1("noisy", "800*(-exp(-3*x) + exp(-1.5*x)) + sin(0.01*x)/10 + x/10", 0, 2*TMath::Pi());
+    TF1* noisy = new TF1("noisy", "800*(-exp(-3*x) + exp(-1.5*x)) + (sin(3*x)/10 + x/10)", 0, 2*TMath::Pi());
     canvas->cd(3);
     noisy->SetTitle("Signal & Noise");
     noisy->DrawClone();
@@ -42,7 +42,7 @@ void testanalysis() {
     canvas->cd(4);
     noisyFFT->DrawClone();
     gPad->SetLogy();
-    TF1 *noise = new TF1("noise", "sin(0.01*x)/10 + x/10", 0, 2*TMath::Pi());
+    TF1 *noise = new TF1("noise", "sin(3*x)/10 + x/10", 0, 2*TMath::Pi());
     canvas->cd(5);
     noise->DrawClone();    
     TH1F* noisehisto = new TH1F("noisehisto", "Noise", nbins, 0, 2*TMath::Pi());
@@ -62,7 +62,7 @@ void testanalysis() {
     canvas2->cd(2);
     noiseFFT->DrawClone();
     gPad->SetLogy();
-    noisyFFT->SetTitle("Normalized Noisy Signal & Noise FFT");
+    //noisyFFT->SetTitle("Normalized Noisy Signal & Noise FFT");
     canvas2->cd(3); 
     noisyFFT->Draw();
     noiseFFT->Draw("same");
@@ -71,7 +71,7 @@ void testanalysis() {
     for (Int_t l=0; l<nbins; l++) {
          normsignalFFT->SetBinContent(l+1, (noisyFFT->GetBinContent(l+1)-noiseFFT->GetBinContent(l+1))/noisyFFT->GetBinContent(l+1));
     }
-    TH1F* signalFFT = new TH1F ("signalFFT", "Signal FFT S/(S+N)*(S+N)", nbins, 0, 2*TMath::Pi());
+    TH1F* signalFFT = new TH1F ("signalFFT", "Signal FFT", nbins, 0, 2*TMath::Pi());
     for (Int_t q=0; q<nbins; q++) {
         signalFFT->SetBinContent(q+1, normsignalFFT->GetBinContent(q+1)*noisyFFT->GetBinContent(q+1));
     }
@@ -99,8 +99,8 @@ void testanalysis() {
     }
     func->Draw();
     bettersignal->Draw("same");
-    funchisto->SetLineColor(kGreen);
-    funchisto->Draw("same");
+    //funchisto->SetLineColor(kGreen);
+    //funchisto->Draw("same");
     
 
 

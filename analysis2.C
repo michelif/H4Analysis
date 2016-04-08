@@ -9,20 +9,20 @@ void analysis2() {
     Int_t j;
     char name[20];
     char title[100];
-    TH1F *HistoEvent[2214];
-    for (Int_t z=0;z<2214;z++) {
+    TH1F *HistoEvent[2219];
+    for (Int_t z=0;z<2219;z++) {
         sprintf(name,"HistoEvent%d",z-1);
         sprintf(title,"Event%d Histo", z-1);
         HistoEvent[z] = new TH1F(name,title,nbins, -0.1, 159.9);
     }
-    TH1F *NewHistoEvent[2214];
-    for (Int_t z=0;z<2214;z++) {
+    TH1F *NewHistoEvent[2219];
+    for (Int_t z=0;z<2219;z++) {
         sprintf(name,"NewHistoEvent%d",z-1);
         sprintf(title,"Event%d Histo", z-1);
         NewHistoEvent[z] = new TH1F(name,title,nbins, -0.1, 159.9);
     }
-    TH1F *NewHistoEventFFT[2214];
-    for (Int_t z=0;z<2214;z++) {
+    TH1F *NewHistoEventFFT[2219];
+    for (Int_t z=0;z<2219;z++) {
         sprintf(name,"NewHistoEventFFT%d",z-1);
         sprintf(title,"Event%d Histo", z-1);
         NewHistoEventFFT[z] = new TH1F(name,title,nbins, 0, 5);
@@ -39,7 +39,7 @@ void analysis2() {
     TH1F* NormNoiseFFT = new TH1F ("NormNoiseFFT", "Normalized Noise FFT", nbins, 0, 5);
     TStopwatch t;
     t.Start(); //1 hour runtime
-    for (j=10;j<20;j++) {
+    for (j=0;j<2218;j++) {
                 plot = "WF_val:WF_time>>TempHisto";
                 cut = "WF_ch==APD1 && amp_max[APD3]<25 && b_rms[APD3]<5. && charge_tot[APD3]<20000 &&  amp_max[APD5]<25 && b_rms[APD5]<5. &&  amp_max[APD6]<25 && b_rms[APD6]<5. &&  amp_max[APD4]<25 && b_rms[APD4]<5. && amp_max[SiPM1]<20 && amp_max[SiPM2]<20 && amp_max[APD1]<40 && amp_max[APD2]<40 && b_rms[APD1]<5. && b_rms[APD2]<5. && WF_time<160 && event==";
                 cut += j;
@@ -65,8 +65,8 @@ void analysis2() {
                 NewHistoEvent[j+1]->Scale(1/rms);
                 NewHistoEvent[j+1]->FFT(NewHistoEventFFT[j+1], "MAG");
                 NormNoiseFFT->Add(NormNoiseFFT, NewHistoEventFFT[j+1]);
-                NewHistoEvent[j+1]->Write();
-                NewHistoEventFFT[j+1]->Write();
+                //NewHistoEvent[j+1]->Write();
+                //NewHistoEventFFT[j+1]->Write();
                 cout << "Event " << j << ", Mean = " << mean << ", RMS = " << rms << endl;
                 count += 1;
 //           }
