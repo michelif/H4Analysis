@@ -60,6 +60,7 @@ public:
     //---setters---
     void                  SetSignalWindow(int min, int max);
     void                  SetBaselineWindow(int min, int max);
+    void                  SetHisto(TString rootfilename, TString histoname);
     void                  SetTemplate(TH1* templateWF=NULL);
     //---utils---
     void                  Reset();
@@ -68,7 +69,6 @@ public:
     WFFitResults          TemplateFit(float offset=0., int lW=0, int hW=0);
     void                  EmulatedWF(WFClass& wf, float rms, float amplitude, float time);
     void                  FFT(WFClass& wf, float tau, int cut);
-    void                  GetHisto(TString rootfilename, TString histoname);
     void                  FilterFFT(WFClass& wf);
     void                  Print();
     //---operators---
@@ -108,6 +108,11 @@ protected:
     float         tempFitTime_;
     float         tempFitAmp_;
     TH1F*         normNoiseFFT_;
+    TH1F*         h1_;
+    TH1F*         h1mag_;
+    TH1F*         h1phase_;
+    TH1F*         h1signalfft_;
+    int           nbinsFFT_;
     ROOT::Math::Interpolator* interpolator_;
 };
 

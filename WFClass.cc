@@ -422,15 +422,21 @@ void WFClass::FFT(WFClass& wf, float tau, int cut)
     return;
 }
 
-void WFClass::GetHisto(TString rootfilename, TString histoname)
+void WFClass::SetHisto(TString rootfilename, TString histoname)
 {
     TString pathtofile;
-    pathtofile = "/afs/cern.ch/user/m/mlazarev/public/";
+    //pathtofile = "/afs/cern.ch/user/m/mlazarev/public/";
     pathtofile += rootfilename;
 
-    TFile *inputfile = new TFile(pathtofile);
+    TFile *inputfile = new TFile(pathtofile); //AllNormalizedNoiseFFT.root
     
-    normNoiseFFT_ = (TH1F*) inputfile->Get(histoname);
+    normNoiseFFT_ = (TH1F*) inputfile->Get(histoname); //NormNoiseFFT
+    nbinsFFT_ = normNoiseFFT_->GetNbinsX();
+
+    h1_ = new TH1F ("shiftedsampleshisto", "shifted samples histo", nbinsFFT_, 0, 160);
+    h1mag_ = new TH1F ("shiftedsampleshistomag", "shifted samples histo mag", nbinsFFT_, 0, 5);
+    h1phase_ = new TH1F ("shiftedsampleshistophase", "shifted samples histo phase", nbinsFFT_, 0, 800);
+    h1signalfft_ = new TH1F ("signalfft", "signal FFT", nbinsFFT_, 0, 5);
 
     inputfile->Close();
 }
@@ -457,50 +463,42 @@ void WFClass::FilterFFT(WFClass& wf)
 
     normNoiseFFT_->Scale(ped_rms);
 
-    int nbins=normNoiseFFT_->GetNbinsX();
-
-    Double_t shiftedsamples_[nbins];
-    for (int i=0;i<nbins;i++) {
+    Double_t shiftedsamples_[nbinsFFT_];
+    for (int i=0;i<nbinsFFT_;i++) {
         shiftedsamples_[i] = (samples_[i] - ped_mean);
     }
 
-    TH1F *h1 = new TH1F ("shiftedsampleshisto", "shifted samples histo", nbins, 0, 160);
 
-    for (int i=0;i<nbins;i++) {
-        h1->SetBinContent(i+1, shiftedsamples_[i]);
+    for (int i=0;i<nbinsFFT_;i++) {
+        h1_->SetBinContent(i+1, shiftedsamples_[i]);
     }
 
-    TH1F *h1mag = new TH1F ("shiftedsampleshistomag", "shifted samples histo mag", nbins, 0, 5);
-    TH1F *h1phase = new TH1F ("shiftedsampleshistophase", "shifted samples histo phase", nbins, 0, 800);
+    h1_->FFT(h1mag_, "MAG");
+    h1_->FFT(h1phase_, "PH");
 
-    h1->FFT(h1mag, "MAG");
-    h1->FFT(h1phase, "PH");
-
-    TH1F *h1signalfft = new TH1F ("signalfft", "signal FFT", nbins, 0, 5);
-
-    for (int i=0;i<nbins;i++) {
-        h1signalfft->SetBinContent(i+1, (h1mag->GetBinContent(i+1) - normNoiseFFT_->GetBinContent(i+1))); //S FFT = SN FFT - N FFT
+    for (int i=0;i<nbinsFFT_;i++) {
+        h1signalfft_->SetBinContent(i+1, (h1mag_->GetBinContent(i+1) - normNoiseFFT_->GetBinContent(i+1))); //S FFT = SN FFT - N FFT
     }
 
-    Double_t signal_re[nbins], signal_im[nbins];
-    for (int i=0;i<nbins;i++) {
-        signal_re[i] = h1signalfft->GetBinContent(i+1)*cos(h1phase->GetBinContent(i+1));
-        signal_im[i] = h1signalfft->GetBinContent(i+1)*sin(h1phase->GetBinContent(i+1));
+    Double_t signal_re[nbinsFFT_], signal_im[nbinsFFT_];
+    for (int i=0;i<nbinsFFT_;i++) {
+        signal_re[i] = h1signalfft_->GetBinContent(i+1)*cos(h1phase_->GetBinContent(i+1));
+        signal_im[i] = h1signalfft_->GetBinContent(i+1)*sin(h1phase_->GetBinContent(i+1));
     }
 
-    TVirtualFFT *vinvfft = TVirtualFFT::FFT(1,&nbins,"C2R M K");
+    TVirtualFFT *vinvfft = TVirtualFFT::FFT(1,&nbinsFFT_,"C2R M K");
    
     vinvfft->SetPointsComplex(signal_re,signal_im);
     vinvfft->Transform();
-    Double_t temp_re[nbins],temp_im[nbins];
+    Double_t temp_re[nbinsFFT_],temp_im[nbinsFFT_];
     vinvfft->GetPointsComplex(temp_re,temp_im); //temp_re is signal (unscaled by 1/entries after FFT) from 0-160 ns
 
     std::vector<double> inv_re;
 
-    for (int i=0;i<nbins;i++) {
-        inv_re.push_back(temp_re[i]/nbins); //properly scaled 0-160 ns
+    for (int i=0;i<nbinsFFT_;i++) {
+        inv_re.push_back(temp_re[i]/nbinsFFT_); //properly scaled 0-160 ns
     }
-    for (int i=nbins;i<n;i++) {
+    for (int i=nbinsFFT_;i<n;i++) {
         inv_re.push_back(shiftedsamples_[i]); //adding on original tail to ensure that the standard is still 1024 indices
     }
 
@@ -509,10 +507,10 @@ void WFClass::FilterFFT(WFClass& wf)
 
     normNoiseFFT_->Scale(1/ped_rms);
 
-    delete h1;
-    delete h1mag;
-    delete h1phase;
-    delete h1signalfft;
+    delete h1_;
+    delete h1mag_;
+    delete h1phase_;
+    delete h1signalfft_;
     delete normNoiseFFT_;
     delete vinvfft;
 
