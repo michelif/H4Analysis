@@ -421,7 +421,7 @@ void WFClass::FFT(WFClass& wf, float tau, int cut)
     return;
 }
 
-void WFClass::FilterFFT(WFClass& wf, float tau, int cut)
+void WFClass::FilterFFT(WFClass& wf)
 {
     if(samples_.size() == 0)
     {
@@ -448,8 +448,6 @@ void WFClass::FilterFFT(WFClass& wf, float tau, int cut)
     NormNoiseFFT->Scale(ped_rms);
 
     int nbins=NormNoiseFFT->GetNbinsX();
-    
-    //TVirtualFFT *vfft = TVirtualFFT::FFT(1,&nbins,"C2CFORWARD");
 
     Double_t shiftedsamples_[nbins];
     for (int i=0;i<nbins;i++) {
@@ -468,24 +466,6 @@ void WFClass::FilterFFT(WFClass& wf, float tau, int cut)
     h1->FFT(h1mag, "MAG");
     h1->FFT(h1phase, "PH");
 
-    //Double_t orig_re[nbins],orig_im[nbins];
-    //for(int i=0;i<nbins;i++) 
-    //{
-    //    orig_re[i]=shiftedsamples_[i];
-    //    if(i>1000) orig_re[i]=orig_re[999];// DIGI CAENV1742 NOT USABLE
-    //    orig_im[i]=0;
-    //}
-    //vfft->SetPointsComplex(orig_re,orig_im);
-    //vfft->Transform();
-    //Double_t re[nbins],im[nbins];
-    //vfft->GetPointsComplex(re,im); // re has the y-values of the SN FFT
-
-    //Double_t noise[nbins];
-    //for (int i=0;i<nbins;i++) {
-    //    if(i>1000) noise[i]=noise[999];
-    //    noise[i]=NormNoiseFFT->GetBinContent(i+1);
-    //}
-
     TH1F *h1signalfft = new TH1F ("signalfft", "signal FFT", nbins, 0, 5);
 
     for (int i=0;i<nbins;i++) {
@@ -494,27 +474,27 @@ void WFClass::FilterFFT(WFClass& wf, float tau, int cut)
 
     Double_t signal_re[nbins], signal_im[nbins];
     for (int i=0;i<nbins;i++) {
-        signal_re[i] = h1signalfft->GetBinContent(i+1)*cos(h1phase->GetBinContent(i+1);
-        signal_im[i] = h1signalfft->GetBinContent(i+1)*sin(h1phase->GetBinContent(i+1);
+        signal_re[i] = h1signalfft->GetBinContent(i+1)*cos(h1phase->GetBinContent(i+1));
+        signal_im[i] = h1signalfft->GetBinContent(i+1)*sin(h1phase->GetBinContent(i+1));
     }
 
     TVirtualFFT *vinvfft = TVirtualFFT::FFT(1,&nbins,"C2R M K");
    
     vinvfft->SetPointsComplex(signal_re,signal_im);
     vinvfft->Transform();
-    Double_t temp_re[n],temp_im[n];
+    Double_t temp_re[nbins],temp_im[nbins];
     vinvfft->GetPointsComplex(temp_re,temp_im); //temp_re is signal (unscaled by 1/entries after FFT) from 0-160 ns
 
     std::vector<double> inv_re;
 
     for (int i=0;i<nbins;i++) {
-        inv_re.push_back(temp_re[i]/nbins); //properly scaled 0-160 ns 
+        inv_re.push_back(temp_re[i]/nbins); //properly scaled 0-160 ns
     }
     for (int i=nbins;i<n;i++) {
         inv_re.push_back(shiftedsamples_[i]); //adding on original tail to ensure that the standard is still 1024 indices
     }
 
-    for(int i=0;i<nbins;i++)
+    for(int i=0;i<n;i++)
         wf.AddSample(inv_re[i]);
 
     NormNoiseFFT->Scale(1/ped_rms);
@@ -525,7 +505,6 @@ void WFClass::FilterFFT(WFClass& wf, float tau, int cut)
     delete h1signalfft;
     delete NormNoiseFFT;
     delete vinvfft;
-    delete vfft;
 
     return;
 }
