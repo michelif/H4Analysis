@@ -422,7 +422,7 @@ void WFClass::FFT(WFClass& wf, float tau, int cut)
     return;
 }
 
-void WFClass::SetNN(TString rootfilename, TString histoname)
+void WFClass::GetHisto(TString rootfilename, TString histoname)
 {
     TString pathtofile;
     pathtofile = "/afs/cern.ch/user/m/mlazarev/public/";

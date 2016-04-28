@@ -68,7 +68,7 @@ public:
     WFFitResults          TemplateFit(float offset=0., int lW=0, int hW=0);
     void                  EmulatedWF(WFClass& wf, float rms, float amplitude, float time);
     void                  FFT(WFClass& wf, float tau, int cut);
-    void                  SetNN(TString rootfilename, TString histoname);
+    void                  GetHisto(TString rootfilename, TString histoname);
     void                  FilterFFT(WFClass& wf);
     void                  Print();
     //---operators---
