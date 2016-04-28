@@ -432,79 +432,98 @@ void WFClass::FilterFFT(WFClass& wf, float tau, int cut)
     wf.Reset();
 
     int n=samples_.size();
-    TVirtualFFT *vfft = TVirtualFFT::FFT(1,&n,"C2CFORWARD");
 
     std::vector<double> pedestal; // # of indeces for 45 ns of pedestal
 
-    for(int i=0;i<225;i++) {
+    for(int i=0;i<225;i++) { //225 samples = first 45 ns of pulse which is pedestal
         pedestal.push_back(samples_[i]);
     }
     Double_t ped_mean = TMath::Mean(pedestal.begin(), pedestal.end());
     Double_t ped_rms = TMath::RMS(pedestal.begin(), pedestal.end());
 
     TFile noiseFFTinput("/home/marko/Desktop/TB Timing Res/AllNormalizedNoiseFFT.root");
+
     TH1F *NormNoiseFFT = 0;
     NormNoiseFFT = (TH1F*) noiseFFTinput.Get("NormNoiseFFT");
-    int nbins=NormNoiseFFT->GetNbinsX();
     NormNoiseFFT->Scale(ped_rms);
 
-    Double_t shiftedsamples_[n];
-    for (int i=0;i<n;i++) {
+    int nbins=NormNoiseFFT->GetNbinsX();
+    
+    //TVirtualFFT *vfft = TVirtualFFT::FFT(1,&nbins,"C2CFORWARD");
+
+    Double_t shiftedsamples_[nbins];
+    for (int i=0;i<nbins;i++) {
         shiftedsamples_[i] = (samples_[i] - ped_mean);
     }
 
-    Double_t orig_re[n],orig_im[n];
-    for(int i=0;i<n;i++) 
-    {
-        orig_re[i]=shiftedsamples_[i];
-        if(i>1000) orig_re[i]=orig_re[999];// DIGI CAENV1742 NOT USABLE
-        orig_im[i]=0;
-    }
-    vfft->SetPointsComplex(orig_re,orig_im);
-    vfft->Transform();
-    Double_t re[n],im[n];
-    vfft->GetPointsComplex(re,im); // re has the y-values of the SN FFT
-
-    TVirtualFFT *vnoisefft = TVirtualFFT::FFT(1,&nbins,"C2CFORWARD");
-
-    Double_t noise_re[NormNoiseFFT->GetNbinsX()], noise_im[NormNoiseFFT->GetNbinsX()];
+    TH1F *h1 = new TH1F ("shiftedsampleshisto", "shifted samples histo", nbins, 0, 160);
 
     for (int i=0;i<nbins;i++) {
-        if(i>1000) noise_re[i]=noise_re[999];
-        noise_re[i]=NormNoiseFFT->GetBinContent(i+1);
-        noise_im[i]=0;
+        h1->SetBinContent(i+1, shiftedsamples_[i]);
     }
 
-    vnoisefft->SetPointsComplex(noise_re,noise_im);
-    vnoisefft->Transform();
-    Double_t noisefft_re[n], noisefft_im[n];
-    vnoisefft->GetPointsComplex(noisefft_re, noisefft_im); // noisefft_re has the y-values of the N FFT
+    TH1F *h1mag = new TH1F ("shiftedsampleshistomag", "shifted samples histo mag", nbins, 0, 5);
+    TH1F *h1phase = new TH1F ("shiftedsampleshistophase", "shifted samples histo phase", nbins, 0, 800);
 
-    TVirtualFFT *vinvfft = TVirtualFFT::FFT(1,&n,"C2CBACKWARD M K");
-    //Double_t cut_re[n],cut_im[n];
+    h1->FFT(h1mag, "MAG");
+    h1->FFT(h1phase, "PH");
 
-    //for(int i=0;i<n;i++) 
+    //Double_t orig_re[nbins],orig_im[nbins];
+    //for(int i=0;i<nbins;i++) 
     //{
-    //    if( i> cut-1 && i<n-cut) 
-    //    {
-    //        int delta = TMath::Min(i-cut-1,n-cut-i); 
-    //        double dump=TMath::Exp(-delta/tau);
-    //        cut_im[i]=im[i]*dump;
-    //        cut_re[i]=re[i]*dump;
-    //        continue;
-    //    }
-    //    cut_re[i]= re[i];
-    //    cut_im[i]= im[i];
+    //    orig_re[i]=shiftedsamples_[i];
+    //    if(i>1000) orig_re[i]=orig_re[999];// DIGI CAENV1742 NOT USABLE
+    //    orig_im[i]=0;
+    //}
+    //vfft->SetPointsComplex(orig_re,orig_im);
+    //vfft->Transform();
+    //Double_t re[nbins],im[nbins];
+    //vfft->GetPointsComplex(re,im); // re has the y-values of the SN FFT
+
+    //Double_t noise[nbins];
+    //for (int i=0;i<nbins;i++) {
+    //    if(i>1000) noise[i]=noise[999];
+    //    noise[i]=NormNoiseFFT->GetBinContent(i+1);
     //}
 
-    //vinvfft->SetPointsComplex(cut_re,cut_im);
-    //vinvfft->Transform();
-    //Double_t inv_re[n],inv_im[n];
-    //vinvfft->GetPointsComplex(inv_re,inv_im);
-//
-    //for(int i=0;i<n ;i++)
-    //    wf.AddSample(inv_re[i]/n);
-//
+    TH1F *h1signalfft = new TH1F ("signalfft", "signal FFT", nbins, 0, 5);
+
+    for (int i=0;i<nbins;i++) {
+        h1signalfft->SetBinContent(i+1, (h1mag->GetBinContent(i+1) - NormNoiseFFT->GetBinContent(i+1))); //S FFT = SN FFT - N FFT
+    }
+
+    Double_t signal_re[nbins], signal_im[nbins];
+    for (int i=0;i<nbins;i++) {
+        signal_re[i] = h1signalfft->GetBinContent(i+1)*cos(h1phase->GetBinContent(i+1);
+        signal_im[i] = h1signalfft->GetBinContent(i+1)*sin(h1phase->GetBinContent(i+1);
+    }
+
+    TVirtualFFT *vinvfft = TVirtualFFT::FFT(1,&nbins,"C2R M K");
+   
+    vinvfft->SetPointsComplex(signal_re,signal_im);
+    vinvfft->Transform();
+    Double_t temp_re[n],temp_im[n];
+    vinvfft->GetPointsComplex(temp_re,temp_im); //temp_re is signal (unscaled by 1/entries after FFT) from 0-160 ns
+
+    std::vector<double> inv_re;
+
+    for (int i=0;i<nbins;i++) {
+        inv_re.push_back(temp_re[i]/nbins); //properly scaled 0-160 ns 
+    }
+    for (int i=nbins;i<n;i++) {
+        inv_re.push_back(shiftedsamples_[i]); //adding on original tail to ensure that the standard is still 1024 indices
+    }
+
+    for(int i=0;i<nbins;i++)
+        wf.AddSample(inv_re[i]);
+
+    NormNoiseFFT->Scale(1/ped_rms);
+
+    delete h1;
+    delete h1mag;
+    delete h1phase;
+    delete h1signalfft;
+    delete NormNoiseFFT;
     delete vinvfft;
     delete vfft;
 
