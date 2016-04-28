@@ -2,6 +2,7 @@
 
 #include "TRandom3.h"
 #include "TVirtualFFT.h"
+#include "TString.h"
 #include "TMath.h"
 #include "TFile.h"
 #include "TH1F.h"
@@ -421,6 +422,19 @@ void WFClass::FFT(WFClass& wf, float tau, int cut)
     return;
 }
 
+void WFClass::SetNN(TString rootfilename, TString histoname)
+{
+    TString pathtofile;
+    pathtofile = "/afs/cern.ch/user/m/mlazarev/public/";
+    pathtofile += rootfilename;
+
+    TFile *inputfile = new TFile(pathtofile);
+    
+    normNoiseFFT_ = (TH1F*) inputfile->Get(histoname);
+
+    inputfile->Close();
+}
+
 void WFClass::FilterFFT(WFClass& wf)
 {
     if(samples_.size() == 0)
@@ -441,13 +455,9 @@ void WFClass::FilterFFT(WFClass& wf)
     Double_t ped_mean = TMath::Mean(pedestal.begin(), pedestal.end());
     Double_t ped_rms = TMath::RMS(pedestal.begin(), pedestal.end());
 
-    TFile noiseFFTinput("/home/marko/Desktop/TB Timing Res/AllNormalizedNoiseFFT.root");
+    normNoiseFFT_->Scale(ped_rms);
 
-    TH1F *NormNoiseFFT = 0;
-    NormNoiseFFT = (TH1F*) noiseFFTinput.Get("NormNoiseFFT");
-    NormNoiseFFT->Scale(ped_rms);
-
-    int nbins=NormNoiseFFT->GetNbinsX();
+    int nbins=normNoiseFFT_->GetNbinsX();
 
     Double_t shiftedsamples_[nbins];
     for (int i=0;i<nbins;i++) {
@@ -469,7 +479,7 @@ void WFClass::FilterFFT(WFClass& wf)
     TH1F *h1signalfft = new TH1F ("signalfft", "signal FFT", nbins, 0, 5);
 
     for (int i=0;i<nbins;i++) {
-        h1signalfft->SetBinContent(i+1, (h1mag->GetBinContent(i+1) - NormNoiseFFT->GetBinContent(i+1))); //S FFT = SN FFT - N FFT
+        h1signalfft->SetBinContent(i+1, (h1mag->GetBinContent(i+1) - normNoiseFFT_->GetBinContent(i+1))); //S FFT = SN FFT - N FFT
     }
 
     Double_t signal_re[nbins], signal_im[nbins];
@@ -497,13 +507,13 @@ void WFClass::FilterFFT(WFClass& wf)
     for(int i=0;i<n;i++)
         wf.AddSample(inv_re[i]);
 
-    NormNoiseFFT->Scale(1/ped_rms);
+    normNoiseFFT_->Scale(1/ped_rms);
 
     delete h1;
     delete h1mag;
     delete h1phase;
     delete h1signalfft;
-    delete NormNoiseFFT;
+    delete normNoiseFFT_;
     delete vinvfft;
 
     return;
