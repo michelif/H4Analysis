@@ -12,6 +12,7 @@
 #include "Math/Minimizer.h"
 #include "Math/Factory.h"
 #include "Math/Functor.h"
+#include "TString.h"
 #include "TMath.h"
 #include "TH1F.h"
 #include "TF1.h"
@@ -67,6 +68,7 @@ public:
     WFFitResults          TemplateFit(float offset=0., int lW=0, int hW=0);
     void                  EmulatedWF(WFClass& wf, float rms, float amplitude, float time);
     void                  FFT(WFClass& wf, float tau, int cut);
+    void                  FilterFFT(WFClass& wf, TString rootfilename, TString histoname);
     void                  Print();
     //---operators---
     WFClass&              operator=(const WFClass& origin);

@@ -2,7 +2,10 @@
 
 #include "TRandom3.h"
 #include "TVirtualFFT.h"
+#include "TString.h"
 #include "TMath.h"
+#include "TFile.h"
+#include "TH1F.h"
 
 //**********Constructors******************************************************************
 WFClass::WFClass(int polarity, float tUnit):
@@ -418,6 +421,72 @@ void WFClass::FFT(WFClass& wf, float tau, int cut)
 
     return;
 }
+
+void WFClass::FilterFFT(WFClass& wf, TString rootfilename, TString histoname)
+{
+    if(samples_.size() == 0)
+    {
+        std::cout << "ERROR: EMPTY WF" << std::endl;
+        return;
+    }
+
+    wf.Reset();
+
+    //---get input files
+    TFile *inputfile = new TFile(pathtofile);
+    
+    TH1F* normNoiseFFT = (TH1F*) inputfile->Get(histoname);
+    nbinsFFT = normNoiseFFT->GetNbinsX();
+
+    TH1F inputWF("shiftedsampleshisto", "shifted samples histo", nbinsFFT, 0, 160);
+    TH1F fft_magnitudes("shiftedsampleshistomag", "shifted samples histo mag", nbinsFFT, 0, 5);
+    TH1F fft_phases("shiftedsampleshistophase", "shifted samples histo phase", nbinsFFT, 0, 800);
+    TH1F h1signalfftx("signalfft", "signal FFT", nbinsFFT, 0, 5);
+
+    inputfile->Close();
+
+    //---FFT analysis
+    int n = samples_.size();
+
+    normNoiseFFT_->Scale(BaselineRMS());
+
+    for(int i=0; i<nbinsFFT; ++i)
+        h1->SetBinContent(i+1, samples_[i]);
+
+    inputWF.FFT(fft_magnitudes, "MAG");
+    inputWF.FFT(fft_phases, "PH");
+
+    //--- S FFT = SN FFT - N FFT
+    for (int i=0; i<nbinsFFT; ++i)
+        fft_signal->SetBinContent(i+1, (fft_magnitudes->GetBinContent(i+1) - normNoiseFFT_->GetBinContent(i+1))); 
+
+    Double_t signal_re[nbinsFFT], signal_im[nbinsFFT];
+    for (int i=0; i<nbinsFFT; ++i)
+    {
+        signal_re[i] = h1signalfft_->GetBinContent(i+1)*cos(fft_phases->GetBinContent(i+1));
+        signal_im[i] = h1signalfft_->GetBinContent(i+1)*sin(fft_phases->GetBinContent(i+1));
+    }
+
+    TVirtualFFT *vinvfft = TVirtualFFT::FFT(1,&nbinsFFT,"C2R M K");
+   
+    vinvfft->SetPointsComplex(signal_re, signal_im);
+    vinvfft->Transform();
+    Double_t temp_re[nbinsFFT], temp_im[nbinsFFT];
+    vinvfft->GetPointsComplex(temp_re, temp_im); //temp_re is signal (unscaled by 1/entries after FFT) from 0-160 ns
+
+    std::vector<double> inv_re;
+
+    for(int i=0;i<nbinsFFT;i++)
+        wf.AddSample(temp_re[i]/nbinsFFT); //properly scaled 0-160 ns
+    auto original_samples = wf.GetSamples();
+    for(int i=nbinsFFT; i<n; ++i)
+        wf.AddSample(original_samples->at(i)); //adding on original tail to ensure that the standard is still 1024 indices
+
+    delete vinvfft;
+
+    return;
+}
+
 
 //----------compute baseline RMS (noise)--------------------------------------------------
 float WFClass::BaselineRMS()
