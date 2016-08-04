@@ -199,18 +199,39 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
             auto Im = fft->GetIm();
             auto fftc2r = TVirtualFFT::FFT(1, &nSamples_, "C2R");
 	    //---subtract FFT of noise from template before going back to time domain
+
             if(opts.OptExist(instanceName_+".subtractFFTNoise")){
+	      float sampleShift=0;
+	      if(opts.OptExist(instanceName_+".triggerRefSample")){
+		int trigRef=0;
+		for(int iSample=nSamples_*8; iSample<nSamples_*9; ++iSample)
+		  {
+		    if(event.digiSampleValue[iSample] < 1000)
+		      {
+			trigRef = iSample-nSamples_*8;
+			break;
+		      }
+		  }
+		
+		float sampleShift=(opts.GetOpt<float>(instanceName_+".triggerRefSample")-trigRef);
+		sampleShift = -sampleShift;
+	      }
 	      double noiseRe=0,noiseIm=0,newRe=0, newIm=0;
 	      for(int i=0;i<nSamples_/2;++i){
-		if(opts.OptExist(instanceName_+".frequencyCut")){
-		  if(i>opts.GetOpt<float>(instanceName_+".frequencyCut")) continue;
-		}
-		noiseRe = noiseTemplateHistoRe_->GetBinContent(i);
-		newRe = *(Re->data()+i) - noiseRe; 
-		noiseIm = noiseTemplateHistoIm_->GetBinContent(i);
-		newIm = *(Im->data()+i) - noiseIm; 
-		fftc2r->SetPoint(i,newRe,newIm);
-		//		std::cout<<i<<" "<< *(Re->data()+i)<<" "<<noiseRe<<" "<<newRe<<std::endl;
+
+		noiseRe = noiseTemplateHistoRe_->GetBinContent(i+1);
+		noiseIm = noiseTemplateHistoIm_->GetBinContent(i+1);
+		//translation in time corresponds to phase shift, check http://dsp.stackexchange.com/questions/509/what-effect-does-a-delay-in-the-time-domain-have-in-the-frequency-domain
+		float noiseReTranslated=cos(2*3.1415*sampleShift/nSamples_)*noiseRe+sin(2*3.1415*sampleShift/nSamples_)*noiseIm;
+		float noiseImTranslated=cos(2*3.1415*sampleShift/nSamples_)*noiseIm-sin(2*3.1415*sampleShift/nSamples_)*noiseRe;
+
+		newRe = *(Re->data()+i) - noiseReTranslated; 
+		newIm = *(Im->data()+i) - noiseImTranslated; 
+
+		if(!opts.OptExist(instanceName_+".frequencyCut"))fftc2r->SetPoint(i,newRe,newIm);
+		else if(opts.OptExist(instanceName_+".frequencyCut") && i<opts.GetOpt<float>(instanceName_+".frequencyCut"))	fftc2r->SetPoint(i,newRe,newIm);
+		else fftc2r->SetPoint(i,0,0);
+		//		if(channel=="xtal11")std::cout<<i<<" "<< *(Re->data()+i)<<" "<<noiseReTranslated<<" "<<newRe<<std::endl;
 	      }
 	    }else{
 	      fftc2r->SetPointsComplex(Re->data(), Im->data());

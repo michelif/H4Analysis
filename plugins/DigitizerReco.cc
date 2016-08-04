@@ -54,7 +54,7 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
             WFs[channel]->AddSample(event.digiSampleValue[iSample]);
         }
         if(opts.OptExist(channel+".useTrigRef") && opts.GetOpt<bool>(channel+".useTrigRef"))
-            WFs[channel]->SetTrigRef(trigRef);
+	     WFs[channel]->SetTrigRef(trigRef);
     }
     
     return true;
