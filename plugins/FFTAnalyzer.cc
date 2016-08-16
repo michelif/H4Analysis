@@ -45,6 +45,22 @@ bool FFTAnalyzer::Begin(CfgManager& opts, uint64* index)
         {
             FFTs_[channel] = new FFTClass();
             RegisterSharedData(FFTs_[channel], channel, storeFFT);
+
+            if(opts.OptExist(instanceName_+".subtractFFTNoise")){
+	      noiseTemplateFile_= TFile::Open(opts.GetOpt<string>(instanceName_+".noiseTemplateFile").c_str());
+	      TString noiseTemplateHistoName (opts.GetOpt<string>(instanceName_+".noiseTemplateHisto"));
+	      noiseTemplateHistoRe_ = (TH1F*) noiseTemplateFile_->Get(noiseTemplateHistoName+"_Re_tmpl");
+	      noiseTemplateHistoIm_ = (TH1F*) noiseTemplateFile_->Get(noiseTemplateHistoName+"_Im_tmpl");
+	      if (!noiseTemplateFile_)
+		{
+		  cout << ">>> FFTAnalyzer ERROR: noiseTemplateFile not open " << endl;
+		  return false;
+		}
+
+	    }
+
+
+
         }
         else
         {
@@ -160,6 +176,7 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
             fftr2c->SetPoints(samples_norm.data());
             fftr2c->Transform();
             fftr2c->GetPointsComplex(Re, Im);
+
             FFTs_[channel]->SetPointsComplex(nSamples_/2, Re, Im);
             map<string, const double*> var_map;
             var_map["Re"] = Re;
@@ -199,7 +216,6 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
             auto Im = fft->GetIm();
             auto fftc2r = TVirtualFFT::FFT(1, &nSamples_, "C2R");
 	    //---subtract FFT of noise from template before going back to time domain
-
             if(opts.OptExist(instanceName_+".subtractFFTNoise")){
 	      float sampleShift=0;
 	      if(opts.OptExist(instanceName_+".triggerRefSample")){
@@ -222,11 +238,13 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
 		noiseRe = noiseTemplateHistoRe_->GetBinContent(i+1);
 		noiseIm = noiseTemplateHistoIm_->GetBinContent(i+1);
 		//translation in time corresponds to phase shift, check http://dsp.stackexchange.com/questions/509/what-effect-does-a-delay-in-the-time-domain-have-in-the-frequency-domain
-		float noiseReTranslated=cos(2*3.1415*sampleShift/nSamples_)*noiseRe+sin(2*3.1415*sampleShift/nSamples_)*noiseIm;
-		float noiseImTranslated=cos(2*3.1415*sampleShift/nSamples_)*noiseIm-sin(2*3.1415*sampleShift/nSamples_)*noiseRe;
+		//		float noiseReTranslated=cos(2*3.1415*sampleShift/nSamples_)*noiseRe+sin(2*3.1415*sampleShift/nSamples_)*noiseIm;
+		  //		float noiseImTranslated=cos(2*3.1415*sampleShift/nSamples_)*noiseIm-sin(2*3.1415*sampleShift/nSamples_)*noiseRe;
 
-		newRe = *(Re->data()+i) - noiseReTranslated; 
-		newIm = *(Im->data()+i) - noiseImTranslated; 
+		//		noiseRe = noiseTemplateHistoRe_->GetBinContent(i+1);
+		//		noiseIm = noiseTemplateHistoIm_->GetBinContent(i+1);
+		newRe = *(Re->data()+i) - noiseRe; 
+		newIm = *(Im->data()+i) - noiseIm; 
 
 		if(!opts.OptExist(instanceName_+".frequencyCut"))fftc2r->SetPoint(i,newRe,newIm);
 		else if(opts.OptExist(instanceName_+".frequencyCut") && i<opts.GetOpt<float>(instanceName_+".frequencyCut"))	fftc2r->SetPoint(i,newRe,newIm);
