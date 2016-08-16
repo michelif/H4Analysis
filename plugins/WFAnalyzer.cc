@@ -90,9 +90,9 @@ bool WFAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plu
         }
         
         //---subtract a specified channel if requested
-        if(opts.OptExist(channel+".subtractChannel") && WFs_.find(opts.GetOpt<string>(channel+".subtractChannel")) != WFs_.end())
-            *WFs_[channel] -= *WFs_[opts.GetOpt<string>(channel+".subtractChannel")];        
-        WFs_[channel]->SetBaselineWindow(opts.GetOpt<int>(channel+".baselineWin", 0), 
+        if(opts.OptExist(channel+".subtractChannel") &&  WFs_.find(opts.GetOpt<string>(channel+".subtractChannel")) != WFs_.end())
+	  *WFs_[channel] -= *WFs_[opts.GetOpt<string>(channel+".subtractChannel")];        
+	WFs_[channel]->SetBaselineWindow(opts.GetOpt<int>(channel+".baselineWin", 0), 
                                         opts.GetOpt<int>(channel+".baselineWin", 1));
         WFs_[channel]->SetSignalWindow(opts.GetOpt<int>(channel+".signalWin", 0), 
                                       opts.GetOpt<int>(channel+".signalWin", 1));

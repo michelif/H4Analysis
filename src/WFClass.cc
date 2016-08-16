@@ -67,6 +67,9 @@ WFFitResults WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
     auto fit_result = h_max.Fit(&f_max, "QRS");
     fitTimeMax_ = -f_max.GetParameter(1)/(2*f_max.GetParameter(2));
     fitAmpMax_ = f_max.Eval(fitTimeMax_);
+    if(h_max.GetMean()<5)return{-1, -1000, -1};//otherwise chi2() crashes
+    if(fitAmpMax_<5)return{-1, -1000, -1};
+    if(h_max.Integral()<1)return{-1, -1000, -1};
     fitChi2Max_ = fit_result->Chi2()/(nFitSamples-3);
         
     return WFFitResults{fitAmpMax_, fitTimeMax_*tUnit_, fitChi2Max_};
