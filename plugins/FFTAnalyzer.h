@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "TH2F.h"
+#include "TCanvas.h"
 #include "TVirtualFFT.h"
 
 #include "interface/utils.h"
@@ -49,9 +50,18 @@ private:
     map<string, FFTClass*>    FFTs_;
     map<string, WFClass*>     WFs_;
     TTree*                    fftTree_;         
+    //---subtract FFT noise
     TFile* noiseTemplateFile_;
     TH1F* noiseTemplateHistoRe_;
     TH1F* noiseTemplateHistoIm_;
+    //---wiener filter
+    TFile* signalWeinerTemplateFile_;
+    TH1F*  signalWeinerTemplateHistoAmpl_;
+    TFile* bkgWeinerTemplateFile_;
+    TH1F*  bkgWeinerTemplateHistoAmpl_;
+    TF1* f_bkg_; 
+    TF1* f_filter_; 
+    TH1F* weightHisto_;
 };
 
 DEFINE_PLUGIN(FFTAnalyzer);

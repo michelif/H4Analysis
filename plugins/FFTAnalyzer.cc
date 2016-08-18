@@ -78,6 +78,58 @@ bool FFTAnalyzer::Begin(CfgManager& opts, uint64* index)
 		}
 
 	    }
+            if(opts.OptExist(instanceName_+".wienerFilter")){
+	      signalWeinerTemplateFile_= TFile::Open(opts.GetOpt<string>(instanceName_+".signalWeinerTemplateFile").c_str());
+	      TString signalWeinerTemplateHistoName (opts.GetOpt<string>(instanceName_+".signalWeinerTemplateHisto"));
+	      signalWeinerTemplateHistoAmpl_ = (TH1F*) signalWeinerTemplateFile_->Get(signalWeinerTemplateHistoName+"_Ampl_tmpl");
+
+	      bkgWeinerTemplateFile_= TFile::Open(opts.GetOpt<string>(instanceName_+".bkgWeinerTemplateFile").c_str());
+	      TString bkgWeinerTemplateHistoName (opts.GetOpt<string>(instanceName_+".bkgWeinerTemplateHisto"));
+	      bkgWeinerTemplateHistoAmpl_ = (TH1F*) bkgWeinerTemplateFile_->Get(bkgWeinerTemplateHistoName+"_Ampl_tmpl");
+
+
+	      weightHisto_ = new TH1F("dummy","dummy",512,0,512);
+	      for(int i=0;i<nSamples_/2;++i){
+		float sigPlusBkg = signalWeinerTemplateHistoAmpl_->GetBinContent(i+1);
+		float bkg = bkgWeinerTemplateHistoAmpl_->GetBinContent(i+1);
+		float sig = sigPlusBkg - bkg;
+		float weight = sig*sig/(sig*sig+bkg*bkg);
+		if(sig*sig+bkg*bkg>0)		weightHisto_->SetBinContent(i,weight);
+	      }
+
+	      weightHisto_->Smooth(4);
+
+	      TCanvas c1;
+	      weightHisto_->Draw();
+	      c1.SaveAs("weiner.png");
+
+
+	      //background modeled with a pol2 fit to noise distribution
+//	      f_bkg_ = new TF1("f_bkg_","pol2",0.,512.);
+//	      f_bkg_->SetParameter(0,249.2);
+//	      f_bkg_->SetParameter(1,-0.87);
+//	      f_bkg_->SetParameter(2,0.001176);
+
+	      f_filter_=new TF1("f_filter","gaus",0.,512.);//fixme move to config
+	      f_filter_->SetParameter(0,1.01292);
+	      f_filter_->SetParameter(1,0.0484);
+	      f_filter_->SetParameter(2,28.5);
+
+
+	      if (!signalWeinerTemplateFile_)
+		{
+		  cout << ">>> FFTAnalyzer ERROR: signalWeinerTemplateFile not open " << endl;
+		  return false;
+		}
+
+	      if (!bkgWeinerTemplateFile_)
+		{
+		  cout << ">>> FFTAnalyzer ERROR: bkgWeinerTemplateFile not open " << endl;
+		  return false;
+		}
+
+	    }
+
 
         }
     }
@@ -215,6 +267,48 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
             auto Re = fft->GetRe();
             auto Im = fft->GetIm();
             auto fftc2r = TVirtualFFT::FFT(1, &nSamples_, "C2R");
+	
+	    if(opts.OptExist(instanceName_+".subtractFFTNoise") || opts.OptExist(instanceName_+".wienerFilter")){
+	    //---wiener filtering
+	    //see http://www.dmf.unisalento.it/~giordano/allow_listing/wiener.pdf
+            if(opts.OptExist(instanceName_+".wienerFilter")){
+
+	      float weight=0,newRe=0,newIm=0;
+	      for(int i=0;i<nSamples_/2;++i){
+		//		float sigPlusBkg = signalWeinerTemplateHistoAmpl_->GetBinContent(i+1);
+		//		float bkg = bkgWeinerTemplateHistoAmpl_->GetBinContent(i+1);
+		//		bkgWeinerTemplateHistoAmpl_->Print();
+		//		std::cout<<i<<" "<<sigPlusBkg<<" "<<bkg<<std::endl;
+		//		float bkg = f_bkg_->Eval(i);
+		//		float sig = sigPlusBkg - bkg;
+		//		weight = sig*sig/(sig*sig+bkg*bkg);
+		//		if(sig*sig+bkg*bkg>0)		dummy->SetBinContent(i,weight);
+		//		weight = f_filter_->Eval(i);
+		//std::cout<<i<<" "<<weight<<std::endl;
+
+		weight = weightHisto_->GetBinContent(i+1);
+
+		newRe = *(Re->data()+i)*weight;
+		newIm = *(Im->data()+i)*weight;
+
+		if(!opts.OptExist(instanceName_+".frequencyCut"))fftc2r->SetPoint(i,newRe,newIm);
+		else if(opts.OptExist(instanceName_+".frequencyCut") && i<opts.GetOpt<float>(instanceName_+".frequencyCut"))	fftc2r->SetPoint(i,newRe,newIm);
+		else if(opts.OptExist(instanceName_+".frequencyCut") && i>opts.GetOpt<float>(instanceName_+".frequencyCut"))    {fftc2r->SetPoint(i,*(Re->data()+i)*TMath::Erfc((i+1-opts.GetOpt<float>(instanceName_+".frequencyCut"))*0.1),*(Im->data()+i)*TMath::Erfc((i+1-opts.GetOpt<float>(instanceName_+".frequencyCut"))*0.1));
+		  //		  std::cout<<i<<" "<<TMath::Erfc((i+1-opts.GetOpt<float>(instanceName_+".frequencyCut"))*0.1)<<std::endl;
+		}
+	      }
+
+//	      TFile* f= TFile::Open("weiner_noCh18Sub.root","recreate"); 
+//	      TCanvas c1;
+//	      dummy->Draw();
+//	      c1.SaveAs("weiner.png");
+//	      dummy->Write("weight");
+//	      f->Write();
+//	      f->Close();
+
+
+	    }
+
 	    //---subtract FFT of noise from template before going back to time domain
             if(opts.OptExist(instanceName_+".subtractFFTNoise")){
 	      float sampleShift=0;
@@ -251,6 +345,7 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
 		else fftc2r->SetPoint(i,0,0);
 		//		if(channel=="xtal11")std::cout<<i<<" "<< *(Re->data()+i)<<" "<<noiseReTranslated<<" "<<newRe<<std::endl;
 	      }
+	    }
 	    }else{
 	      fftc2r->SetPointsComplex(Re->data(), Im->data());
 	    }
