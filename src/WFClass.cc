@@ -23,9 +23,13 @@ float WFClass::GetAmpMax(int min, int max)
     //---setup signal window
     if(min!=-1 && max!=-1)
         SetSignalWindow(min, max);
+    //---control to avoid crashes in some weird events
+    if(maxSample_>1024 || sWinMin_>1024 || sWinMax_>1024)
+      return -1;
     //---return the max if already computed
     else if(maxSample_ != -1)
         return samples_.at(maxSample_);
+
 
     //---find the max
     maxSample_=sWinMin_;

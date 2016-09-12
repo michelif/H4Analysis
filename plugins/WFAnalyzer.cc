@@ -88,6 +88,14 @@ bool WFAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plu
             ++outCh;
             continue;
         }
+
+	//---FIXME hardcoded value
+	//---H4DAQ bug: sometimes ADC value is out of bound and previous plugin doesn't reconstruct the event
+	//---skip everything if one channel is bad
+	if(WFs_[channel]->GetNSample()!=1024){
+	  cout << ">>>WFAnalyzer WARNING: skipped event" << endl;
+	  return false;
+	}
         
         //---subtract a specified channel if requested
         if(opts.OptExist(channel+".subtractChannel") &&  WFs_.find(opts.GetOpt<string>(channel+".subtractChannel")) != WFs_.end())
