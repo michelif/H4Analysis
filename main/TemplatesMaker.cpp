@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
     map<string, TH2F*> templates;
     for(auto channel : channelsNames)
         templates[channel] = new TH2F(channel.c_str(), channel.c_str(),
-				      16000, -40, 160, 1200, -0.1, 1.1);
+				      18000, -20, 160, 1200, -0.1, 1.1);
   
     //-----input setup-----
     TChain* inTree = new TChain("H4tree");
@@ -187,7 +187,9 @@ int main(int argc, char* argv[])
         WFClass WF(opts.GetOpt<int>(refChannel+".polarity"), tUnit);
         int digiGr = opts.GetOpt<int>(refChannel+".digiGroup");
         int digiCh = opts.GetOpt<int>(refChannel+".digiChannel");
-        int offset = digiGr*9*nSamples + digiCh*nSamples;
+	int inactiveGroups=0;
+	if(opts.OptExist("global.inactiveGroups"))inactiveGroups=opts.GetOpt<int>("global.inactiveGroups");
+        int offset = digiGr*9*nSamples + digiCh*nSamples-inactiveGroups*nSamples*9;
         for(int iSample=offset; iSample<offset+nSamples; ++iSample)
         {
             //---H4DAQ bug: sometimes ADC value is out of bound.
@@ -211,10 +213,13 @@ int main(int argc, char* argv[])
 	//---you may want to use an offset, for example if you use the trigger time
 	if(opts.OptExist(refChannel+".timeOffset"))refTime -= opts.GetOpt<float>(refChannel+".timeOffset");
         //---require reference channel to be good
-        if(refTime/tUnit < opts.GetOpt<int>(refChannel+".signalWin", 0) ||
-           refTime/tUnit > opts.GetOpt<int>(refChannel+".signalWin", 1) ||
-	   refBaseline.rms > opts.GetOpt<float>(refChannel+".noiseThreshold") ||  refAmpl < opts.GetOpt<int>(refChannel+".amplitudeThreshold"))
-	  continue;
+	//    std:cout<<refTime/tUnit<<"<"<<opts.GetOpt<int>(refChannel+".signalWin", 0)<<" -- "<<" > "<<opts.GetOpt<int>(refChannel+".signalWin", 1)<<std::endl;
+	//	std::cout<<refBaseline.rms<<" > "<<opts.GetOpt<float>(refChannel+".noiseThreshold")<<" -- "<< refAmpl<<" < "<< opts.GetOpt<int>(refChannel+".amplitudeThreshold")<<std::endl;
+		if(refTime/tUnit < opts.GetOpt<int>(refChannel+".signalWin", 0) ||
+		refTime/tUnit > opts.GetOpt<int>(refChannel+".signalWin", 1) ||
+		refBaseline.rms > opts.GetOpt<float>(refChannel+".noiseThreshold") ||  refAmpl < opts.GetOpt<int>(refChannel+".amplitudeThreshold"))
+		  continue;
+
 
         //---template channels
         for(auto& channel : channelsNames)
@@ -223,7 +228,7 @@ int main(int argc, char* argv[])
             WFClass WF(opts.GetOpt<int>(channel+".polarity"), tUnit);
             int digiGr = opts.GetOpt<int>(channel+".digiGroup");
             int digiCh = opts.GetOpt<int>(channel+".digiChannel");
-            int offset = digiGr*9*nSamples + digiCh*nSamples;
+            int offset = digiGr*9*nSamples + digiCh*nSamples -inactiveGroups*nSamples*9;
             for(int iSample=offset; iSample<offset+nSamples; ++iSample)
             {
                 //---H4DAQ bug: sometimes ADC value is out of bound.
@@ -246,6 +251,9 @@ int main(int argc, char* argv[])
             WFBaseline channelBaseline=WF.SubtractBaseline();
 	    channelAmpl = WF.GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2)).ampl;
             channelTime = WF.GetTime(opts.GetOpt<string>(channel+".timeType"), timeOpts[channel]).first;
+	    //	    std::cout<<channelTime<<" "<<channelAmpl<<std::endl;
+	    //	    std::cout<<channelTime/tUnit<<" > "<<opts.GetOpt<int>(channel+".signalWin", 0)<< " < "<< opts.GetOpt<int>(channel+".signalWin", 1)<<std::endl;
+	    //	    std::cout<<channelBaseline.rms <<" < "<<opts.GetOpt<float>(channel+".noiseThreshold")<<std::endl; 
             //---skip bad events or events with no signal
 
             if(channelTime/tUnit > opts.GetOpt<int>(channel+".signalWin", 0) &&
@@ -257,6 +265,8 @@ int main(int argc, char* argv[])
                const vector<double>* analizedWF = WF.GetSamples();
 	       for(int iSample=0; iSample<analizedWF->size(); ++iSample){
 		 templates[channel]->Fill(iSample*tUnit-refTime, analizedWF->at(iSample)/channelAmpl);
+		 // FIXME the shift is not ok if then you want to fit since it shifts the time back
+		 //		 templates[channel]->Fill(iSample*tUnit, analizedWF->at(iSample)/channelAmpl);
 	       }
 	    }
         }
