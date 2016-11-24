@@ -203,6 +203,7 @@ bool FFTAnalyzer::Begin(CfgManager& opts, uint64* index)
     return true;
 }
 
+
 bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plugins, CfgManager& opts)
 {
     for(auto& channel : channelsNames_)
@@ -224,12 +225,23 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
 	    int i=0;
             //---build the FFT
             double Re[nSamples_], Im[nSamples_];
-            auto fftr2c = TVirtualFFT::FFT(1, &nSamples_, "R2C");
-            fftr2c->SetPoints(samples_norm.data());
-            fftr2c->Transform();
-            fftr2c->GetPointsComplex(Re, Im);
+	    
+	    if(opts.OptExist(instanceName_+".BW4Filter")){//butterworth filter of 4th order
+	      auto fftr2c = TVirtualFFT::FFT(1, &nSamples_, "C2C B");//the FFT is done inside the filter so this is C2C B
+	      std::pair<Double_t*,Double_t*> realImP=ButterworthFilter4(samples_norm);
+	      fftr2c->SetPointsComplex(realImP.first,realImP.second);
+	      FFTs_[channel]->SetPointsComplex(nSamples_, realImP.first, realImP.second);
+	      delete fftr2c;
+	    }else{
+	      auto fftr2c = TVirtualFFT::FFT(1, &nSamples_, "R2C");
+	      fftr2c->SetPoints(samples_norm.data());
+	      fftr2c->Transform();
+	      fftr2c->GetPointsComplex(Re, Im);
+	      FFTs_[channel]->SetPointsComplex(nSamples_/2, Re, Im);
+	      delete fftr2c;
+	    }
 
-            FFTs_[channel]->SetPointsComplex(nSamples_/2, Re, Im);
+
             map<string, const double*> var_map;
             var_map["Re"] = Re;
             var_map["Im"] = Im;
@@ -253,7 +265,7 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
                     }
                 }
             }
-            delete fftr2c;
+
         }
         //---FFT from frequency to time domain /// F2T
         else
@@ -267,7 +279,9 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
             auto Re = fft->GetRe();
             auto Im = fft->GetIm();
             auto fftc2r = TVirtualFFT::FFT(1, &nSamples_, "C2R");
-	
+
+
+
 	    if(opts.OptExist(instanceName_+".subtractFFTNoise") || opts.OptExist(instanceName_+".wienerFilter")){
 	    //---wiener filtering
 	    //see http://www.dmf.unisalento.it/~giordano/allow_listing/wiener.pdf
@@ -375,4 +389,110 @@ bool FFTAnalyzer::End(CfgManager& opts)
             GetIterativeProfile(templates2dHistos_[channel+tmpl], templatesHistos_[channel+tmpl]);
 
     return true;
+}
+
+
+std::pair<Double_t*,Double_t*>  FFTAnalyzer::ButterworthFilter4(std::vector<double>& samples_norm){
+
+	      TVirtualFFT *fft_f = TVirtualFFT::FFT(1, &nSamples_, "C2CF M K");
+	      TVirtualFFT *fft_r = TVirtualFFT::FFT(1, &nSamples_, "R2C K");
+
+	      int BW4=50;
+	      float pi=3.1415;
+	      float freq=5.0;
+	      float dt=1./freq;
+	      float df=freq/nSamples_;
+	      // Butterworth filter order 4
+	      double o1=0.7654, o2=1.8478;
+	      // Cut-off frequency :
+	      double oc=2.*pi*BW4*1.e6;
+	      double a1=1+o1*oc*dt/2.+(oc*dt/2.)*(oc*dt/2.);
+	      double b1=2.*((oc*dt/2.)*(oc*dt/2.)-1.);
+	      double c1=1-o1*oc*dt/2.+(oc*dt/2.)*(oc*dt/2.);
+	      double a2=1+o2*oc*dt/2.+(oc*dt/2.)*(oc*dt/2.);
+	      double b2=2.*((oc*dt/2.)*(oc*dt/2.)-1.);
+	      double c2=1-o2*oc*dt/2.+(oc*dt/2.)*(oc*dt/2.);
+	      double ad=a1*a2;
+	      double bd=a1*b2+b1*a2;
+	      double cd=a1*c2+b1*b2+c1*a2;
+	      double dd=b1*c2+c1*b2;
+	      double ed=c1*c2;
+	      double an=1.;
+	      double bn=4.;
+	      double cn=6.;
+	      double dn=4.;
+	      double en=1.;
+	      double g=pow(dt*oc,4)/16.;
+	      an=g*an/ad;
+	      bn=g*bn/ad;
+	      cn=g*cn/ad;
+	      dn=g*dn/ad;
+	      en=g*en/ad;
+	      bd=bd/ad;
+	      cd=cd/ad;
+	      dd=dd/ad;
+	      ed=ed/ad;
+	      ad=1.;
+	      double y4=0.,y3=0.,y2=0.,y1=0.;
+	      double x4=0.,x3=0.,x2=0.,x1=0.;
+
+	      double rex_BW4[nSamples_],rey_BW4[nSamples_],rey2_BW4[nSamples_];
+	      double imx_BW4[nSamples_],imy_BW4[nSamples_],imy2_BW4[nSamples_];
+	      double yref=1.;
+	      //step response
+	      for(int i=0; i<200; i++)
+		{
+		  double value=0.;
+		  if(i>10)value=1.;
+		  double y=x4*en+x3*dn+x2*cn*x1*bn+value*an-y4*ed-y3*dd-y2*cd-y1*bd;
+		  x4=x3; x3=x2; x2=x1; x1=value;
+		  y4=y3; y3=y2; y2=y1; y1=y;
+		  yref=y;
+		}
+
+
+	      y4=0.,y3=0.,y2=0.,y1=0.;
+	      x4=0.,x3=0.,x2=0.,x1=0.;
+
+
+	      for(int is=0; is<nSamples_; is++)
+		{
+		  double value=*(samples_norm.data()+is);
+		  double y=(x4*en+x3*dn+x2*cn*x1*bn+value*an)/yref-y4*ed-y3*dd-y2*cd-y1*bd; 
+		  x4=x3; x3=x2; x2=x1; x1=value;
+		  y4=y3; y3=y2; y2=y1; y1=y;
+		  rex_BW4[is]=y;
+		  imx_BW4[is]=0;
+		  //		  std::cout<<value<<" "<<y<<" "<<yref<<std::endl;
+		}
+
+	      double mod_BW4[nSamples_];
+	      fft_f->SetPointsComplex(rex_BW4, imx_BW4);
+	      fft_f->Transform();
+	      fft_f->GetPointsComplex(rey_BW4, imy_BW4);
+	      //	      delete fft_f;
+
+	      fft_r->SetPoints(samples_norm.data());
+	      fft_r->Transform();
+	      fft_r->GetPointsComplex(rey2_BW4, imy2_BW4);
+	      delete fft_r;
+
+
+	      double xax[nSamples_];
+	      float normalization = 0;
+	      for(int i=0; i<nSamples_; i++)  {
+		xax[i]=i;
+		mod_BW4[i]=1/(sqrt(rey_BW4[i]*rey_BW4[i]+imy_BW4[i]*imy_BW4[i])/yref);
+		if(i==0)	normalization=mod_BW4[i];//in general the filter has some gain so normalize it
+		mod_BW4[i]=mod_BW4[i]/normalization;
+		rey2_BW4[i]=mod_BW4[i]*rey2_BW4[i];
+		imy2_BW4[i]=mod_BW4[i]*imy2_BW4[i];
+	      }
+//	      TCanvas c3;
+//	      TGraph dummy(512,xax, mod_BW4);
+//	      dummy.Draw("AP");
+//	      c3.SaveAs("dummy.png");
+
+
+	      return std::make_pair<Double_t*,Double_t*>(rey2_BW4,imy2_BW4);
 }

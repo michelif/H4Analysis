@@ -7,6 +7,7 @@
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TVirtualFFT.h"
+#include "TGraph.h"
 
 #include "interface/utils.h"
 #include "interface/PluginBase.h"
@@ -28,7 +29,9 @@ public:
     bool Begin(CfgManager& opts, uint64* index);
     bool ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plugins, CfgManager& opts);
     bool End(CfgManager& opts);
-    
+
+    std::pair<Double_t*,Double_t*> ButterworthFilter4(std::vector<double>&);
+          
 private:    
     //---internal data
     uint64*                   index_;
