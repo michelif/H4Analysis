@@ -1,0 +1,493 @@
+list of runs
+--Pulse shape study:
+----Energy Scan On C3 @ Gain 50 @ 18 deg
+run      Nevents            Energy
+5298     101514             200 GeV    
+5299     103773             150 GeV    
+         	            
+5300     15421              50 GeV   
+5301     91689              50 GeV   
+       		            
+5302     101666             20 GeV   
+
+----Energy Scan On C3 (ch 18) @ Gain 50 @ 14 deg 
+run                      Nevents     Energy      Comments 
+5328                     5.1k        50 GeV     (since run above had wrong SiPM Voltage) 
+5329                     21k                     alarms, had to clear GUI restart
+5330                     24k       
+
+5331                     20k         pedestals 
+
+5340                     50156       150 GeV
+
+5348                     30117       100 GeV
+5349                     21230
+
+5358                     50052       200 GeV
+
+5368                     20389       20 GeV
+5369                     31540
+
+----Fine position Scan on C3 (ch18) @ Gain 50 @ 18 deg
+--------50 GeV
+run         Position     Nevents       Comments
+5602        C3           60K  
+               
+5603        C3_N         70k
+
+5604        C3_S         31k           DAQ crashed
+5605        C3_S         24k           DAQ crashed
+5606        C3_S         5k
+
+5607        C3_E         60k 
+
+--------100 GeV
+run         Position     Nevents       Comments
+5612        C3           11k           DAQ crashed   
+5613        C3           50k
+
+5614        C3_N         60k
+
+5615        C3_S         60k
+
+5616        C3_E         60k
+
+--------200 GeV
+run         Position     Nevents       Comments
+5620        C3           60k      
+
+5621        C3_N          50K          
+5640        C3_N         11k
+
+5622        C3_S          45k          then no beaam
+5641        C3_S         15k
+
+5624        C3_E          50k
+5642        C3_E         10k
+
+--------150 GeV
+run         Position     Nevents       Comments
+5633        C3           60k      
+
+5634        C3_N         60k
+
+5635        C3_S         60k
+
+5636        C3_E         60k
+
+----High statistics run on C3 @ Gain 50 @ 18 deg
+Run           Beam Energy (GeV)          #events
+5673                 50                  260k
+5674                100                  333k
+5675                200                  1.16M
+
+
+----HV scan on C3 (ch 18) @ 50 GeV @ 18 deg:
+
+run         HV         Gain           Nevents                   Comments
+5196        HV=355V    50             50.0k                       
+		                  
+5197        HV=348V    40             53.0k                       
+		                  
+5198        HV=360V    58.5           23.0k                     -> DAQ crashed
+5199        HV=360V                   24.0k                     -> DAQ crashed
+5200        HV=360V                   50.0k                     
+		                  
+5201        HV=365V    70             34.0k                     -> DAQ crashed
+5206        HV=365V                   16.0k                     
+		                  
+5207        HV=373V    100            50kevts                     
+		                  
+5208        HV=380V    150            38kevts                   had to close GUI because of errors
+5209        HV=380V                   12kevts                   
+		                  
+5210        HV=384V    200            50kevts                       
+
+----HV scan on C3 (ch 18) @ 100 GeV @ 18 deg:
+run         HV             Gain         Nevents                Comments
+5227        HV=373V        100          50.4k                     
+		                   
+5228        HV=348V        40           33.4k                  DAQ crash
+5229        HV=348V                     21.9k       
+		                   
+5230        HV=355V        50	        51.5k           
+        	                   
+5231        HV=360V        58.5         43.8k                  Beam lost, few hours without beam
+5234        HV=360V                     10.2k
+		                   
+5235        HV=365V        70	        52.9k           
+		                   
+5236        HV=380V        150          51.1k       
+		                   
+5237        HV=384V        200          50.4k       
+
+----HV scan on C3 (ch18) @ 50 GeV @ 18 deg:
+run     HV     Gain           
+5377    348V                pedestal             20997
+
+5378    348V               50183
+	                 
+	                 
+5379    355V               52054
+	                 
+5380    360V               50902
+	                 
+5381    365V               28937  DAQ crash
+5382    365V               22704
+	                 
+5383    373V               53194
+	                 
+5384    380V               50781
+	                 
+5385    384V               39366  DAQ crash
+5386    384V               12493
+5387    pedestal                       21998
+
+----HV scan on C3 (ch 18) @ 100 GeV @ 14 deg:
+run         HV             Gain                           Nevents      Comments
+5318        HV=352.7V      50                             51kevts      (comment was wrong)
+				                          
+5319        HV=345.7V      40                             51kevts
+
+5320        HV=355.0V      (was gain 50 at 18 degrees)    51k
+
+5321        HV=357.7V      58.5                           8.3k         alarms, close
+5322        HV=357.7V                                     41.7k
+				                 
+5323        HV=362.7V      70                             50k
+				                 
+5324        HV=370.7V      100                            8.3k         alarms, GUI not responding, restart
+5325        HV=370.7V                                     52k
+				                 
+5326        HV=378.7V      150                            50k
+				                  
+5327        HV=381.7V      200                            50k
+
+
+----Energy scan on C2 (Ch17) @ Gain 50 @ 18 deg
+run      Nevents            Energy
+5216     50kevts            50GeV
+5242     53.7k              100GeV
+5250     50k                150GeV
+5277     51108              20 GeV
+5291     53445              200 GeV
+5253        PEDESTAL RUN
+
+
+
+----HV scan on C3 @ 18 deg
+
+Going back to 405V on MBtop
+
+100 GeV:
+Run          HV on MBbottom(Gain)        #events
+5669         373            (100)        63k
+5670         384            (200)        60k
+
+50 GeV:
+Run          HV on MBbottom(Gain)        #events
+5671         373            (100)        60k
+5672         384            (200)        60k
+
+
+
+----Energy Scan On C2 (ch 17) @ Gain 50 @ 14 deg
+run       Nevents     Energy     Comments
+5332      50k         50 GeV
+
+5341      50336       150 GeV
+
+5350      50605       100 GeV
+
+5359      33847       200 GeV
+5360      21459
+
+5370      19087       20GeV      --> DAQ crashed
+5371      30662
+
+----Energy Scan on C3 (ch 18) @ Gain 50 @ 18 deg @ 2.5 GHz sampling frequency
+5717 100 GeV C3 100 GeV 150kevts 
+5718           50                    156k
+5719           200                   156k
+5720           150                   150k
+5721           20                    340k
+
+
+----September TB:Channel Numbering
+In the "standard" channel map, C0 signal is on digitizer channels 22 and 23, while from run 5822 (first run after CsI crystals removal), they are on channel 21 and 22.
+
+C0 - 22 and 23
+D0 - 7
+E0 NOT CONNECTED
+A1 - BROKEN
+B1 - 25
+C1 - 30
+D1 12
+E1 - 8
+A2 - BROKEN
+B2 - 26
+C2 -24
+D2 -13
+E2 - 9
+A3 - 3 
+B3 - 27
+C3 -18
+D3 - 20
+E3 BROKEN
+A4 - 4
+B4 - 28
+C4 - 19
+D4 - 14
+E4 -10 
+A5 - 5
+B5 - 29 
+C5 - 31
+D5 - 15
+E5 -11
+MCP1-16
+MCP2-17
+
+----September TB: HV scan on C3
+--------100 GeV
+Run      Gain   HV      Nevents
+5777     G50    355     101757
+5778     G100   373     100918
+5779     G200   384     102115
+
+--------50 GeV
+Run      Gain   HV      Nevents
+5801     G50    355V     50k
+5802     G100   373V     50k
+5803     G200   384V     50k
+
+
+----September TB: HV scan on C0
+--------100 GeV
+Run      Gain   HV      Nevents
+5780     G50    405     111543
+5781     G100   424     101954
+5782     G200   434     105003
+
+--------100 GeV
+Run      Gain   HV      Nevents
+5796   G50      405V     50k     
+5824   G100     424	 50k
+5825   G200     434      50K
+
+--------150 GeV
+Run      Gain   HV      Nevents
+5826     G200    434	  50k
+5827     G100    424      20k
+
+----September TB:spike runs
+new mapping: 
+spike MB: 
+VFE A channels 18,19,20,21,22
+VFE E channels:24,25,26,27,28
+VFE F B0-29, C0-30,31
+MCP-16,17
+
+Run     Beam type   Gain (MB spike)          position          Nevents 
+5834    pi+         G100                     237, 70 (Iron block) 332k
+5835    pedestal    G100                     237, 70            
+5848    pi+         G100                     237, 70            150k
+5849    pedestal    G100                     237, 70            
+5861    pedestal    G100                     237, 70            
+5862    pi+         G100                      Crystal C0          220k   
+
+5837    pi+         G200                     237, 70            436k
+5838    pedestal    G200                     237, 70            
+5850    pedestal    G200                     237, 70            
+5851    pi+         G200                     237, 70            
+5852    pedestal    G200                     237, 70            
+5854    pi+         G200                     Crystal C0            
+5855    pedestal    G200                     Crystal C0            
+5856    pi+         G200                     237, 70            
+5857    pedestal    G200                     237, 70            
+5863    pedestal    G200                     Crystal C0            
+5864    pi+         G200                     Crystal C0          180k   
+
+5837    pi+         G50                      237, 70             183k
+5840    pedestal    G50                      237, 70            
+5844    pi+         G50                      237, 70             84k
+5845    pi+         G50                      237, 70             80k
+5846    pi+         G50                      237, 70             20k
+5858    pi+         G50                      237, 70             
+5859    pedestal    G50                      237, 70            
+5860    pi+         G50                      Crystal C0          220k   
+5865    pedestal    G50                      Crystal C0            
+5866    pi+         G50                      237, 70             6k
+5867    pi+         G50                      237, 70             102k
+
+
+----September TB: HV scan on C0 @ 200 GeV
+run   Energy    Gain  HV      Nevents 
+5886  200GeV    G100  424V    71k
+
+5887  200GeV    G200  434V    101k
+
+5888  200GeV    G50   405V    51k
+
+----September TB: HV scan on C3 @ 200 GeV
+run   Energy    Gain  HV      Nevents 
+5889  200GeV    G50   355V     52k
+
+5890  200GeV    G100  373V     84k
+
+5891  200GeV    G200  384V     60k
+
+
+
+----September TB: HV scan on C3 @ 150 GeV
+run   Energy    Gain  HV      Nevents 
+5892  pedestal run   G200
+5893  150GeV   C3    G200 384V MBbottom	   102k
+5894  pedestal run, G100
+5895  150GeV   C3    G100 373V MBbottom	   103k
+5896  pedestal run, G50
+5897  150GeV   C3    G50  355V MBbottom	   101k
+
+----September TB: HV scan on C0 @ 150 GeV
+run   Energy    Gain       HV      Nevents 
+5898  pedestal run, G200  
+5899  150GeV    G200       434V      100k
+
+run   Energy    Gain       HV      Nevents 
+5900  pedestal   G100     424V	   11k
+5901  150GeV     G100     424V	   100k
+
+5902  pedestal    G50     405V	  12k
+5903  150GeV   	  G50	405V   	101k
+
+----Scan on other xtals @ 150 GeV @ Gain 50
+--------C1
+run   Energy      Nevents 
+5904  pedestal	   12k
+5905  150GeV	  100k
+
+--------C2
+run   Energy       Nevents 
+5906  pedestal	   11k
+5907  150GeV	   104k
+
+--------D2
+run   Energy       Nevents 
+
+5908  pedestal      12k
+5909  150GeV        50k
+
+--------D3
+run   Energy       Nevents 
+5910  pedestal     10k
+5911  150GeV	   52k
+
+--------C1
+run   Energy       Nevents 
+5912  pedestal	   10k
+5913  150GeV	   50k
+
+--------C2
+5914  pedestal	10k
+5915  150GeV	49k 
+
+
+--------C3
+5916  pedestal	10k
+5917  150GeV	51k
+
+8:35am: change the digitizer frequency to 2.5GHz
+
+
+----September TB: Electron runs @ 2.5 GHz sampling frequency
+--------- Position Scan at 150 GeV @ Gain 50 @ 150 GeV
+run     Crystal         Nevents    Comments
+5918    pedestal run  
+
+5929	C1              101k
+5933	C1       	35k
+
+5923    pedestal run
+
+5924	C2             100k
+	               
+5925    C3             106k
+
+5926    C0	
+5927	C0	      101k
+5934   pedestal run, C0 G50, 405V MBtop		12k
+5935   150GeV	C0   G50     	  405V		MBtop		ongoing
+
+
+5928	pedestal run 
+
+
+5930	C2      	101k
+
+5931	pedestal run
+
+5932	C3       	101k
+
+
+
+--Timing
+----Fine position Scan on C0 (ch 30 - 31) @ 150 GeV, Gain 50 @ 18 deg
+run      Position          Nevents
+5269	 C0                52842 events
+5270     C0N               50696 events
+5271     C0S               51961 events
+5272     C0W               53018 events
+5273     C0E               58562 events
+5274	 pedestal	   26000 events
+
+
+
+-----Energy scan on C0 (ch 21 -22) @ Gain 50 @ 14 deg
+Run 5345          C0    50071 events 150 GeV
+Run 5365    C0          52293 200 GeV
+
+Run 5376    C0          50550 20 GeV
+
+-----Energy scan on C0 (ch 21 -22) @ Gain 50 @ 18 deg
+5611        C0           60k 50 GeV
+5619        C0           60k 100 GeV
+
+5630        C0            26k  200 GeV
+5631        C0            21k
+5632        C0            21k
+
+5649        C0           64k  150GeV
+
+
+----HV Scan of C0 @ 18 deg
+
+50 GeV MBTop= 424
+Run:        Crystal:      events:
+5652        C0            11K   ->daq crashed     
+5653        C0            52k
+50 GeV MBTop= 434
+Run:        Crystal:      events:
+5654        c0            60k  
+
+100 GeV MBTop= 434
+Run:        Crystal:      events:
+5655        c0            60k
+100 GeV MBTop= 424
+Run:        Crystal:      events:
+5656        c0            60k
+
+
+150 GeV MBTop= 424
+Run:        Crystal:      events:
+5658        c0            60k
+150 GeV MBTop= 434
+Run on going
+
+150GeV:
+MBtop = 434 (200):
+5659        C0           60k
+
+200GeV:
+MBtop = 424 (100):
+5660        C0           60k
+MBtop = 434 (200):
+5661        C0           60k
