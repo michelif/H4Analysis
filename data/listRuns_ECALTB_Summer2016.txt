@@ -43,6 +43,21 @@ run                      Nevents     Energy      Comments
 
 5522                      66k        200 GeV
 
+----Energy Scan On C3 (ch 18) @ Gain 50 @ 8 deg 
+run                      Nevents     Energy      Comments 
+5574                     63k         20  GeV
+
+5528                     71623       50 GeV
+
+5542                     67k         100 GeV 
+
+5554                     60k         150 GeV
+
+5546                     61k         200 GeV
+
+
+
+
 
 ----Fine position Scan on C3 (ch18) @ Gain 50 @ 18 deg
 --------50 GeV
@@ -187,6 +202,14 @@ run         HV             Gain        Nevents      Comments
 5490        347 Volts     gain 50      60.3k
 5491        365 Volts     gain 100     66.3k
 5492        376 Volts     gain 200     63.7k 
+
+
+----HV scan on C3 (ch 18) @ 100 GeV @ 8 deg:
+run         HV             Gain        Nevents      Comments
+5528        348V           gain 50      71623
+5529        366V           gain 100     61000
+5530        377V           gain 200     64555
+
 
 ----Energy scan on C2 (Ch17) @ Gain 50 @ 18 deg
 run      Nevents            Energy
