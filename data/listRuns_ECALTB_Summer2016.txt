@@ -29,6 +29,21 @@ run                      Nevents     Energy      Comments
 5368                     20389       20 GeV
 5369                     31540
 
+
+----Energy Scan On C3 (ch 18) @ Gain 50 @ 6 deg 
+run                      Nevents     Energy      Comments 
+5512                      60k        20 GeV
+
+5499                      49.6k      50 GeV      DAQ crashed
+5500                      13.7k      50 GeV
+
+5505                      60k        100 GeV
+
+5517                      64k        150 GeV
+
+5522                      66k        200 GeV
+
+
 ----Fine position Scan on C3 (ch18) @ Gain 50 @ 18 deg
 --------50 GeV
 run         Position     Nevents       Comments
@@ -166,6 +181,12 @@ run         HV             Gain                           Nevents      Comments
 				                  
 5327        HV=381.7V      200                            50k
 
+
+----HV scan on C3 (ch 18) @ 100 GeV @ 6 deg:
+run         HV             Gain        Nevents      Comments
+5490        347 Volts     gain 50      60.3k
+5491        365 Volts     gain 100     66.3k
+5492        376 Volts     gain 200     63.7k 
 
 ----Energy scan on C2 (Ch17) @ Gain 50 @ 18 deg
 run      Nevents            Energy
