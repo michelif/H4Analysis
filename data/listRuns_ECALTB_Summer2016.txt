@@ -2,11 +2,27 @@ list of runs
 --Pulse shape study:
 ----Energy Scan On C3 @ Gain 50 @ 18 deg
 run      Nevents            Energy
+#####best centered runs#######
+5675      1.16M             200  GeV
+5633                              150 GeV
+
+5195    50k                100 GeV
+
+5196      50k                 50 GeV
+
+5276     50k                    20 GeV
+5302     101666             20 GeV
+
+
+
+Additional statistics:
 5298     101514             200 GeV    
 5299     103773             150 GeV    
 
 
 5230    51.5k             100 GeV
+5674    300k             100 GeV
+
          	            
 5300     15421              50 GeV   
 5301     91689              50 GeV   
