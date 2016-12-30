@@ -1,14 +1,36 @@
-{
-  TString run=5880;
-  TString outDir = "plots/";
+void fastPlotter(TString run){
+
+  //  TString run = "5580";
+  TString outDir = "plots/"+run+"/";
+  system("mkdir "+outDir);
+  cout<<"Processing Run:"+run<<std::endl;
 
   TFile *_file0 = TFile::Open("ntuples/Run_"+run+".root");
-  TFile *outfile = TFile::Open(outDir+"outFile"+run+".root");
+  TTree* tree = (TTree*) _file0->Get("h4");
+  TFile *outfile = TFile::Open(outDir+"outFile"+run+".root","recreate");
 
-  h4->Draw("time[Ch0]-time[Trig]>>h(1000,0,200)","time[Ch0]>18","");
+  TCanvas*  c1 = new TCanvas();
+  TH1F* h = new TH1F("h","h",10000,0,200);
+  TH1F* h2 = new TH1F("h2","h2",1000,0,4000);
+
+
+  tree->Project("h","time[Ch0]-time[Trig]","time[Ch0]>18");
+  float mean =  h->GetMean();
+  float  rms = h->GetRMS();
+  h->GetXaxis()->SetRangeUser(mean-10*rms,mean+10*rms);
   h->Fit("gaus");
-  h->SaveAs(outDir+"TimingResolution.png");
-  h->SaveAs(outDir+"TimingResolution.pdf");
+  h->Draw();
+  c1->SaveAs(outDir+"TimingResolution.png");
+  c1->SaveAs(outDir+"TimingResolution.pdf");
+  h->Write("TimingResolution");
+
+  tree->Project("h2","amp_max[Ch0]","","");
+  h2->Draw();
+  c1->SaveAs(outDir+"AmpCh0.png");
+  c1->SaveAs(outDir+"AmpCh0.pdf");
+  h2->Write("AmpCh0");
 
 
+  outfile->Write();
+  outfile->Close();
 }
