@@ -10,10 +10,11 @@ void fastPlotter(TString run){
   TFile *outfile = TFile::Open(outDir+"outFile"+run+".root","recreate");
 
   TCanvas*  c1 = new TCanvas();
+  //define histos with correct boundaries
   TH1F* h = new TH1F("h","h",10000,0,200);
   TH1F* h2 = new TH1F("h2","h2",1000,0,4000);
 
-
+  //project on the histo a given variable with a given selection
   tree->Project("h","time[Ch0]-time[Trig]","time[Ch0]>18");
   float mean =  h->GetMean();
   float  rms = h->GetRMS();
