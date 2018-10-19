@@ -17,12 +17,13 @@ def IterativeProfiling(wf):
     """
 
     tmp_prof = wf.ProfileX()
+
     prof = ROOT.TH1F("prof", "", wf.GetNbinsX(), wf.GetXaxis().GetXmin(), wf.GetXaxis().GetXmax())
 
     #---Adjust to make the leading-edge half max at the origin
     half_bin  = tmp_prof.FindFirstBinAbove(tmp_prof.GetMaximum()/2.)
     t_shift = int((tmp_prof.GetBinCenter(half_bin))/prof.GetBinWidth(1)) 
-    
+
     for ibin in range(1, wf.GetNbinsX()+1):
         jbin = ibin-t_shift
         if jbin<1:
@@ -31,6 +32,7 @@ def IterativeProfiling(wf):
         for ybin in range(1, wf.GetNbinsY()+1):
             h.SetBinContent(ybin, wf.GetBinContent(ibin,ybin))
             h.SetBinError(ybin, wf.GetBinError(ibin,ybin))
+
 
         deltaMean = 9999
         deltaRMS = 9999
@@ -50,6 +52,8 @@ def IterativeProfiling(wf):
         prof.SetBinError(jbin, h.GetMeanError())
 
         h.Delete()
+
+
 
     return prof
 
@@ -108,20 +112,41 @@ if __name__ == '__main__':
         reco_file = ROOT.TFile.Open(args.input_file)
         reco_tree = reco_file.Get("h4")
 
-        tmpl_file = ROOT.TFile.Open(args.output, 'UPDATE')
+        tmpl_file = ROOT.TFile.Open(args.output, 'RECREATE')
         tmpl_file.Delete('tmpl_'+ch+';*')
         tmpl_file.Delete('cfg_tmpl_'+ch+';*')
         h_wf_2d = ROOT.TH2D('wf_2d_'+ch, '', int(args.bins[0]), float(args.bins[1]), float(args.bins[2]), 10000, -0.1, 1.1)
+        h_wf_2d_notsync = ROOT.TH2D('wf_2d_notsync_'+ch, '', int(args.bins[0]), float(args.bins[1]), float(args.bins[2]), 10000, -0.1, 1.2)
+        h_wf_2d_diffnorm = ROOT.TH2D('wf_2d_diffnorm_'+ch, '', int(args.bins[0]), float(args.bins[1]), float(args.bins[2]), 10000, -0.1, 1.2)
         
         var = 'wf.WF_val/digi_t.amp_max[%s]:wf.WF_time-digi_t.time[%s+CFD]' % (ch+'_T', ch+'_T')
         cut = 'wf.WF_ch=='+ch+' && '+args.cut
         cfg.SetOpt('selection_'+ch, vstring(1, cut))
         entries = reco_tree.Draw(var+'>>wf_2d_'+ch, cut, "COLZ")
         print('>>> Number of events used:', entries/cfg.GetOpt(int)(ch+'.nSamples'))
+
+        var_notsync = 'wf.WF_val/maximum[%s]:wf.WF_time' % (ch)
+        reco_tree.Draw(var_notsync+'>>wf_2d_notsync_'+ch, cut, "COLZ")
+
+        var_diffnorm = 'wf.WF_val/amp_max[%s]:wf.WF_time-digi_t.time[%s+CFD]' % (ch, ch+'_T')
+        reco_tree.Draw(var_diffnorm+'>>wf_2d_diffnorm_'+ch, cut, "COLZ")
+
+
         
         h_tmpl = IterativeProfiling(h_wf_2d)
         h_tmpl.Scale(1/h_tmpl.GetMaximum())        
         h_tmpl.Write('tmpl_'+ch)
+
+        h_tmpl_notsync = IterativeProfiling(h_wf_2d_notsync)
+        h_tmpl_notsync.Scale(1/h_tmpl_notsync.GetMaximum())        
+        h_tmpl_notsync.Write('tmpl_notsync_'+ch)
+
+        h_tmpl_diffnorm = IterativeProfiling(h_wf_2d_diffnorm)
+        h_tmpl_diffnorm.Scale(1/h_tmpl_diffnorm.GetMaximum())        
+        h_tmpl_diffnorm.Write('tmpl_diffnorm_'+ch)
+
+
+        
         cfg.Write('cfg_tmpl_'+ch)
         tmpl_file.Close()
         reco_file.Close()
